@@ -1,1 +1,1 @@
-github for the Auto Nav Cart team for the Senior Design Project (2025)
+GitHub for the Auto Nav Cart team for the ECE Senior Design Project (2025)
