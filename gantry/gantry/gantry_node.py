@@ -81,8 +81,12 @@ def main(args=None):
     # Destroy the node explicitly
     # (optional - otherwise it will be done automatically
     # when the garbage collector destroys the node object)
+    
     gantry.destroy_node()
     rclpy.shutdown()
+    
+    #send message to ros2: 
+    #ros2 topic pub -1 /topic geometry_msgs/msg/Point "{x: 1.0, y: 1.0, z: 100}"
 
 
 if __name__ == '__main__':
