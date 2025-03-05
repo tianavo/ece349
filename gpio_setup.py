@@ -56,4 +56,4 @@ def move_stepper(dir_pin, pul_pin, steps, delay=0.0015):
     dir_pin.off()
 
 move_stepper(dirX, pulX, 1000)      #dirX = left, dirY = right, pulX = horizontanl (x) movement,    1000 = # steps)
-move_stepper(dirX, pulY, 500)       #dirX = up,   dirY = down,    pulY = vertical (y) movement,        500 = # steps)
+move_stepper(dirX, pulY, 500)       #dirX = up,   dirY = down,  pulY = vertical (y) movement,        500 = # steps)
