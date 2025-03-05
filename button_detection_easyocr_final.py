@@ -1,5 +1,8 @@
 import cv2
+#import ssl
 import easyocr
+
+#ssl._create_default_https_context = ssl._create_unverified_context
 
 # initialize easyocr reader
 reader = easyocr.Reader(['en'])

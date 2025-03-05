@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 
 # load the template image (button i want to press)
-template = cv2.imread("button_template_test.jpg", cv2.IMREAD_GRAYSCALE)
+template = cv2.imread("templatefive.jpg", cv2.IMREAD_GRAYSCALE)
 if template is None:
     print("Error: Could not load template image. Check the file path.")
     exit()
