@@ -11,8 +11,7 @@ def find_template_in_image(test_image_path, template_image_path):
     gray_template = cv2.cvtColor(template, cv2.COLOR_BGR2GRAY)
 
     # Initialize ORB detector
-    #orb = cv2.ORB_create()
-    orb = cv2.ORB_create(nfeatures=1000)  # Increase keypoints
+    orb = cv2.ORB_create(nfeatures=1000)
 
     # Detect keypoints and descriptors
     kp_image, des_image = orb.detectAndCompute(gray_image, None)
@@ -26,57 +25,46 @@ def find_template_in_image(test_image_path, template_image_path):
     matches = sorted(matches, key=lambda x: x.distance)
 
     # Check if there are enough good matches
-    if len(matches) < 3:
+    if len(matches) < 1:
         print("No good matches found! Try adjusting the threshold or template size.")
         return None, None
 
     # Extract the location of good matches
-    points_image = np.float32([kp_image[m.queryIdx].pt for m in matches[:10]]).reshape(-1, 1, 2)
+    points_image = np.float32([kp_image[m.queryIdx].pt for m in matches[:30]]).reshape(-1, 1, 2)
     
     if len(points_image) > 0:
         # Compute the center of the matched points
-        center_x = np.mean([p[0][0] for p in points_image])
-        center_y = np.mean([p[0][1] for p in points_image])
+        center_x = int(np.mean([p[0][0] for p in points_image]))
+        center_y = int(np.mean([p[0][1] for p in points_image]))
 
-        # Calculate width and height of bounding box
-        width = np.std([p[0][0] for p in points_image]) * 4  # Extend width
-        height = np.std([p[0][1] for p in points_image]) * 1.5  # Reduce height
-
-        # Apply scaling factor to keep it **horizontally long**
-        scale_factor_width = 1.5  # Increase width
-        scale_factor_height = 0.4  # Decrease height
-
-        width *= scale_factor_width
-        height *= scale_factor_height
-
-        # Define bounding box coordinates
-        min_x = int(center_x - width / 2)
-        max_x = int(center_x + width / 2)
-        min_y = int(center_y - height / 2)
-        max_y = int(center_y + height / 2)
-
-        # Draw the adjusted bounding box
+        # Draw a crosshair at the detected location
         result_image = image.copy()
-        cv2.rectangle(result_image, (min_x, min_y), (max_x, max_y), (0, 255, 0), 3)
+        crosshair_size = 100  # Increased size of crosshair lines
+        crosshair_color = (0, 255, 0)  # Blue color in BGR format
+        
+        # Horizontal line
+        cv2.line(result_image, (center_x - crosshair_size, center_y), (center_x + crosshair_size, center_y), crosshair_color, 3)
+        # Vertical line
+        cv2.line(result_image, (center_x, center_y - crosshair_size), (center_x, center_y + crosshair_size), crosshair_color, 3)
 
         # Save the result
         output_image_path = 'detected_template_output.jpg'
         cv2.imwrite(output_image_path, result_image)
 
         # Show the image
-        cv2.imshow("Detected Template with Horizontally Long Bounding Box", result_image)
-        cv2.waitKey(10000)
+        cv2.imshow("Detected Template with Crosshair", result_image)
+        cv2.waitKey(5000)
         cv2.destroyAllWindows()
 
         # Return coordinates
-        return [(min_x, min_y), (max_x, max_y)], output_image_path
+        return (center_x, center_y), output_image_path
     else:
         print("No matches found!")
         return None, None
 
 # Example usage
-test_image_path = 'testpic6.jpg'  # Full elevator panel
-template_image_path = 'templatefive.jpg'   # Template (button 5)
+test_image_path = 'testpic4.jpg'  
+template_image_path = 'newtemp.jpg'  
 coordinates, output_image_path = find_template_in_image(test_image_path, template_image_path)
 
 if coordinates is not None:
