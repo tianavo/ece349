@@ -30,12 +30,15 @@ def find_template_in_image(test_image_path, template_image_path):
         return None, None
 
     # Extract the location of good matches
-    points_image = np.float32([kp_image[m.queryIdx].pt for m in matches[:30]]).reshape(-1, 1, 2)
+    points_image = np.float32([kp_image[m.queryIdx].pt for m in matches[:20]]).reshape(-1, 1, 2)
     
     if len(points_image) > 0:
         # Compute the center of the matched points
-        center_x = int(np.mean([p[0][0] for p in points_image]))
-        center_y = int(np.mean([p[0][1] for p in points_image]))
+        #center_x = int(np.mean([p[0][0] for p in points_image]))
+        #center_y = int(np.mean([p[0][1] for p in points_image]))
+        center_x = int(np.median([p[0][0] for p in points_image]))
+        center_y = int(np.median([p[0][1] for p in points_image]))
+
 
         # Draw a crosshair at the detected location
         result_image = image.copy()
@@ -62,8 +65,7 @@ def find_template_in_image(test_image_path, template_image_path):
         print("No matches found!")
         return None, None
 
-# Example usage
-test_image_path = 'testpic4.jpg'  
+test_image_path = 'testpic.jpg'        #problem photos (2/17 = 12%): testpic4, testpic9 
 template_image_path = 'newtemp.jpg'  
 coordinates, output_image_path = find_template_in_image(test_image_path, template_image_path)
 
