@@ -58,7 +58,7 @@ def find_template_in_image(test_image_path, template_image_path):
         print("No matches found!")
         return None, None
 
-test_image_path = 'testpic7.jpg'        #problem photos (2/17 = 12%): testpic4, testpic9 
+test_image_path = 'testpic8.jpg'        #problem photos (2/17 = 12%): testpic4, testpic9 
 template_image_path = 'newtemp.jpg'  
 coordinates, output_image_path = find_template_in_image(test_image_path, template_image_path)
 
