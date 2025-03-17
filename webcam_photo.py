@@ -55,7 +55,7 @@ def find_template_in_image(test_image_path, template_image_path):
         center_y = int(np.median([p[0][1] for p in points_image]))
 
         result_image = image.copy()
-        crosshair_size = 100
+        crosshair_size = 25
         crosshair_color = (0, 255, 0)
 
         cv2.line(result_image, (center_x - crosshair_size, center_y), (center_x + crosshair_size, center_y), crosshair_color, 3)
@@ -65,7 +65,7 @@ def find_template_in_image(test_image_path, template_image_path):
         cv2.imwrite(output_image_path, result_image)
 
         cv2.imshow("Detected Template", result_image)
-        cv2.waitKey(5000)
+        cv2.waitKey(10000)
         cv2.destroyAllWindows()
 
         return (center_x, center_y), output_image_path
@@ -73,9 +73,8 @@ def find_template_in_image(test_image_path, template_image_path):
         print("No matches found!")
         return None, None
 
-# Capture an image from the webcam
 test_image_path = capture_webcam_image()
-template_image_path = 'newtemp.jpg'  # Ensure this file exists
+template_image_path = 'newtemp.jpg' 
 
 if test_image_path:
     coordinates, output_image_path = find_template_in_image(test_image_path, template_image_path)
