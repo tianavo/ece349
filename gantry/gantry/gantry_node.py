@@ -16,7 +16,6 @@ import rclpy
 from gpiozero import LED
 import time
 from rclpy.node import Node
-
 from geometry_msgs.msg import Point
 
 

@@ -66,6 +66,10 @@ def find_template_in_image(test_image_path, template_image_path):
         center_x = int(np.median([p[0][0] for p in points_image]))
         center_y = int(np.median([p[0][1] for p in points_image]))
 
+        # Offset crosshair
+        offset = 180
+        center_x += offset
+
         # Draw a crosshair on the detected template location in the test image with those features (size, color)
         result_image = image.copy()
         crosshair_size = 25
