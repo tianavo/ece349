@@ -39,7 +39,7 @@ def find_template_in_image(test_image_path, template_image_path):
         center_y = int(np.median([p[0][1] for p in points_image]))
 
         result_image = image.copy()         #draw crosshair
-        crosshair_size = 100                #size
+        crosshair_size = 100                 #size
         crosshair_color = (0, 255, 0)       #color (green)
         
         #horizontal then vertical lines
@@ -58,7 +58,7 @@ def find_template_in_image(test_image_path, template_image_path):
         print("No matches found!")
         return None, None
 
-test_image_path = 'testpic8.jpg'        #problem photos (2/17 = 12%): testpic4, testpic9 
+test_image_path = 'testpic13.jpg'        #problem photos (2/17 = 12%): testpic4, testpic9 
 template_image_path = 'newtemp.jpg'  
 coordinates, output_image_path = find_template_in_image(test_image_path, template_image_path)
 

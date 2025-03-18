@@ -42,7 +42,6 @@ dirY = LED(DIRY)
 pulX = LED(PULX)
 pulY = LED(PULY)
 
-#def move_stepper(ena, dir_pin, pul_pin, steps, delay=0.001):
 def move_stepper(dir_pin, pul_pin, steps, delay=0.0015):
 
     dir_pin.on()

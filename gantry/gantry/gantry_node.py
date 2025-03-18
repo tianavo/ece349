@@ -26,21 +26,20 @@ class Gantry(Node):
         super().__init__('gantry_node')
         self.subscription = self.create_subscription(
             Point,
-            'topic',
+            'topic',                    # name of the topic
             self.listener_callback,
             10)
-        self.subscription  # prevent unused variable warning
-        DIRX = 27
+        self.subscription               # prevent unused variable warning
+        DIRX = 27                       # set gpio for both stepper motors
         PULX = 22
-
         DIRY = 24
         PULY = 25
 
-        self.dirX = LED(DIRX)
+        self.dirX = LED(DIRX)           # set the pins to be these output "LED" variables
         self.dirY = LED(DIRY)
         self.pulX = LED(PULX)
         self.pulY = LED(PULY)
-        self.delay = 0.002
+        self.delay = 0.0015             # set delay
 
     def listener_callback(self, msg):
         #curr_step = 0
