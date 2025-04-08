@@ -26,6 +26,11 @@ def move_stepper(pul_pin, direction_pin, steps, delay=0.0015):
     direction_pin.off()
 
 # Movement logic based on axis and direction given in function
+# pulX = horizontal movement
+# pulY = vertical movement
+# dirX = left OR up
+# dirY = right OR down
+
 def move_axis(axis, direction, steps):
     if axis == 'x':  # Horizontal
         pul_pin = pulX
@@ -48,7 +53,7 @@ def move_axis(axis, direction, steps):
 
     move_stepper(pul_pin, direction_pin, steps)
 
-# Home position
+# Home position (print)
 def home_position():
     print("Already at home position. No movement required.")
 
