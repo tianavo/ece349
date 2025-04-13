@@ -23,14 +23,14 @@ limit_switch_y = Button(LIMIT_Y, pull_up=True)
 # --- LiDAR Configuration ---
 PORT = "/dev/ttyUSB0"
 BAUDRATE = 230400
-LEFT_ANGLE = 45.0    # Adjustable
+LEFT_ANGLE = 45.0    # Adjust based on physical setup
 RIGHT_ANGLE = 315.0
-THRESHOLD = 500          # mm change to detect door opening
-BASELINE_LEFT = 1000     # Measure with doors closed
-BASELINE_RIGHT = 1000    # 1000m = 1m ~ 3ft
+THRESHOLD = 500      # mm change to detect door open
+BASELINE_LEFT = 1000 # Measure with doors closed
+BASELINE_RIGHT = 1000
 
 # --- Stepper Control Functions ---
-def move_stepper(pul_pin, direction_pin, steps, delay=0.0015): # maybe 0.0013 for slightly faster speed
+def move_stepper(pul_pin, direction_pin, steps, delay=0.0015):
     """Core stepper movement function"""
     direction_pin.on()
     for _ in range(steps):
@@ -101,54 +101,14 @@ def parse_stl19p_packet(packet):
     
     return points
 
-def monitor_elevators():
-    """Continuous LiDAR monitoring"""
-    lidar = serial.Serial(PORT, BAUDRATE, timeout=1)
-    print("LiDAR elevator monitoring started...")
-    
-    try:
-        while True:
-            packet = lidar.read(47)
-            if packet:
-                points = parse_stl19p_packet(packet)
-                if points:
-                    for point in points:
-                        if abs(point["angle"] - LEFT_ANGLE) < 5 and point["distance"] > BASELINE_LEFT + THRESHOLD:
-                            press_elevator1_button_5()
-                            break
-                        elif abs(point["angle"] - RIGHT_ANGLE) < 5 and point["distance"] > BASELINE_RIGHT + THRESHOLD:
-                            press_elevator2_button_5()
-                            break
-    except KeyboardInterrupt:
-        lidar.close()
-
-# --- Action Functions ---
-def press_elevator1_button_5():
-    """Full sequence for left elevator"""
-    print("Moving to Left Elevator...")
-    #home_all()
-    move_axes_simultaneously('right', 'down', 600, 700)
-    time.sleep(1)  # Simulate button press
-    home_all()
-
-def press_elevator2_button_5():
-    """Full sequence for right elevator"""
-    print("Moving to Right Elevator...")
-    #home_all()
-    move_axes_simultaneously('right', 'down', 800, 750)
-    time.sleep(1)
-    home_all()
-
-# --- Testing Functions ---
-def test_lidar():
-    """Verify LiDAR detection"""
-    print("\n=== LiDAR Self-Test ===")
+def scan_lidar(duration=5):
+    """Manual LiDAR scanning mode"""
+    print(f"\nScanning LiDAR for {duration} seconds...")
+    start_time = time.time()
     lidar = serial.Serial(PORT, BAUDRATE, timeout=1)
     
     try:
-        print("Reading LiDAR for 5 seconds...")
-        start_time = time.time()
-        while time.time() - start_time < 5:
+        while time.time() - start_time < duration:
             packet = lidar.read(47)
             if packet:
                 points = parse_stl19p_packet(packet)
@@ -158,76 +118,69 @@ def test_lidar():
                             print(f"Left: {p['angle']:.1f}° | {p['distance']}mm")
                         elif abs(p["angle"] - RIGHT_ANGLE) < 5:
                             print(f"Right: {p['angle']:.1f}° | {p['distance']}mm")
-        print("LiDAR test complete. Verify angles/distances.")
     finally:
         lidar.close()
+
+# --- Action Functions ---
+def press_elevator1_button_5():
+    """Full sequence for left elevator"""
+    print("Moving to Left Elevator...")
+    move_axes_simultaneously('right', 'down', 600, 700)
+    time.sleep(1)  # Simulate button press
+
+def press_elevator2_button_5():
+    """Full sequence for right elevator"""
+    print("Moving to Right Elevator...")
+    move_axes_simultaneously('right', 'down', 800, 750)
+    time.sleep(1)
 
 def test_steppers():
     """Validate motor movements"""
     print("\n=== Stepper Self-Test ===")
-    
     print("Homing...")
     home_all()
-    
     print("Testing X-axis...")
     move_axis('x', 'right', 200)
     time.sleep(1)
     home_with_limit('x', 'left')
-    
     print("Testing Y-axis...")
     move_axis('y', 'down', 200)
     time.sleep(1)
     home_with_limit('y', 'up')
-    
     print("Stepper test complete.")
-
-def manual_test():
-    """Interactive control mode"""
-    print("\n=== Manual Test Mode ===")
-    print("1: Test Left Elevator Position")
-    print("2: Test Right Elevator Position")
-    print("3: Emergency Home")
-    print("q: Exit")
-    
-    while True:
-        cmd = input("Select test: ").lower()
-        if cmd == '1':
-            press_elevator1_button_5()
-        elif cmd == '2':
-            press_elevator2_button_5()
-        elif cmd == '3':
-            home_all()
-        elif cmd == 'q':
-            break
 
 # --- Main Program ---
 if __name__ == "__main__":
-    # Initialization
     print("=== Elevator Control System ===")
-    print("Running startup tests...")
-    test_steppers()
-    test_lidar()
     
-    # Start monitoring thread
-    lidar_thread = threading.Thread(target=monitor_elevators, daemon=True)
-    lidar_thread.start()
-    
-    # Main menu
     try:
         while True:
-            print("\nMain Menu:")
-            print("1: Manual Test Mode")
-            print("2: Auto Monitoring Mode")
+            print("\n=== MAIN MENU ===")
+            print("1: Home All Axes")
+            print("2: Move to Left Elevator")
+            print("3: Move to Right Elevator")
+            print("4: Scan LiDAR (5 sec)")
+            print("5: Test Steppers")
             print("q: Quit")
-            choice = input("Select mode: ").lower()
+            
+            choice = input("Select option: ").strip().lower()
             
             if choice == '1':
-                manual_test()
+                home_all()
             elif choice == '2':
-                print("Auto monitoring active... (Ctrl+C to stop)")
-                while True: time.sleep(1)
+                press_elevator1_button_5()
+            elif choice == '3':
+                press_elevator2_button_5()
+            elif choice == '4':
+                scan_lidar()
+            elif choice == '5':
+                test_steppers()
             elif choice == 'q':
                 break
+            else:
+                print("Invalid option!")
                 
     except KeyboardInterrupt:
-        print("\nShutting down gracefully...")
+        pass
+        
+    print("\nSystem shutdown complete.")
