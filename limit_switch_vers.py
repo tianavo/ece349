@@ -23,14 +23,14 @@ limit_switch_y = Button(LIMIT_Y, pull_up=True)
 # --- LiDAR Configuration ---
 PORT = "/dev/ttyUSB0"
 BAUDRATE = 230400
-LEFT_ANGLE = 45.0    # Adjust based on physical setup
+LEFT_ANGLE = 45.0    # Adjustable
 RIGHT_ANGLE = 315.0
-THRESHOLD = 500      # mm change to detect door open
-BASELINE_LEFT = 1000 # Measure with doors closed
-BASELINE_RIGHT = 1000
+THRESHOLD = 500          # mm change to detect door opening
+BASELINE_LEFT = 1000     # Measure with doors closed
+BASELINE_RIGHT = 1000    # 1000m = 1m ~ 3ft
 
 # --- Stepper Control Functions ---
-def move_stepper(pul_pin, direction_pin, steps, delay=0.0015):
+def move_stepper(pul_pin, direction_pin, steps, delay=0.0015): # maybe 0.0013 for slightly faster speed
     """Core stepper movement function"""
     direction_pin.on()
     for _ in range(steps):
@@ -126,7 +126,7 @@ def monitor_elevators():
 def press_elevator1_button_5():
     """Full sequence for left elevator"""
     print("Moving to Left Elevator...")
-    home_all()
+    #home_all()
     move_axes_simultaneously('right', 'down', 600, 700)
     time.sleep(1)  # Simulate button press
     home_all()
@@ -134,7 +134,7 @@ def press_elevator1_button_5():
 def press_elevator2_button_5():
     """Full sequence for right elevator"""
     print("Moving to Right Elevator...")
-    home_all()
+    #home_all()
     move_axes_simultaneously('right', 'down', 800, 750)
     time.sleep(1)
     home_all()
