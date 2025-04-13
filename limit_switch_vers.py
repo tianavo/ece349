@@ -102,47 +102,80 @@ def parse_stl19p_packet(packet):
     return points
 
 def scan_lidar(duration=5):
-    """Efficient LiDAR scanning with summarized output"""
+    """Improved LiDAR scanning with better error handling and packet validation"""
     try:
         with serial.Serial(PORT, BAUDRATE, timeout=1) as lidar:
             print(f"\nScanning LiDAR for {duration}s (Ctrl+C to stop)...")
+            lidar.reset_input_buffer()  # Clear any stale data
             
             # Data containers
             left_data = []
             right_data = []
             last_print = 0
+            packet_count = 0
+            error_count = 0
             
             start_time = time.time()
             while time.time() - start_time < duration:
-                packet = lidar.read(47)
-                if packet and packet[0] == 0x54 and packet[1] == 0x2C:
+                # Read header first
+                header = lidar.read(2)
+                if not header or len(header) < 2:
+                    continue
+                
+                # Check for valid packet header (0x54 0x2C)
+                if header[0] != 0x54 or header[1] != 0x2C:
+                    error_count += 1
+                    # Attempt to resync by finding next valid header
+                    lidar.read_until(expected=b'\x54\x2C', size=100)
+                    continue
+                
+                # Read remaining packet (45 bytes after header)
+                remaining = lidar.read(45)
+                if len(remaining) < 45:
+                    error_count += 1
+                    continue
+                
+                # Combine header and remaining
+                packet = header + remaining
+                packet_count += 1
+                
+                try:
                     points = parse_stl19p_packet(packet)
                     if points:
-                        now = time.time()
                         for p in points:
                             if abs(p["angle"] - LEFT_ANGLE) < 5:
                                 left_data.append(p["distance"])
                             elif abs(p["angle"] - RIGHT_ANGLE) < 5:
                                 right_data.append(p["distance"])
-                        
-                        # Throttle output to 1Hz
-                        if now - last_print >= 1.0:
-                            print("\n=== Summary ===")
-                            if left_data:
-                                print(f"Left Elevator: Min={min(left_data)}mm | Avg={sum(left_data)/len(left_data):.1f}mm | Max={max(left_data)}mm")
-                            if right_data:
-                                print(f"Right Elevator: Min={min(right_data)}mm | Avg={sum(right_data)/len(right_data):.1f}mm | Max={max(right_data)}mm")
-                            last_print = now
+                except Exception as e:
+                    error_count += 1
+                    print(f"! Packet parsing error: {e}")
                 
-                elif packet:
-                    print(f"! Invalid packet header: {packet[:2].hex()}")
+                # Throttle output to 1Hz
+                now = time.time()
+                if now - last_print >= 1.0:
+                    print("\n=== Summary ===")
+                    print(f"Valid packets: {packet_count} | Errors: {error_count}")
+                    if left_data:
+                        print(f"Left Elevator: Samples={len(left_data)} | Avg={sum(left_data)/len(left_data):.1f}mm")
+                    if right_data:
+                        print(f"Right Elevator: Samples={len(right_data)} | Avg={sum(right_data)/len(right_data):.1f}mm")
+                    last_print = now
             
             # Final summary
             print("\n=== Final Scan Results ===")
+            print(f"Total valid packets: {packet_count}")
+            print(f"Total errors: {error_count}")
             print(f"Left samples: {len(left_data)} | Right samples: {len(right_data)}")
+            if left_data:
+                print(f"Left Elevator: Min={min(left_data)}mm | Avg={sum(left_data)/len(left_data):.1f}mm | Max={max(left_data)}mm")
+            if right_data:
+                print(f"Right Elevator: Min={min(right_data)}mm | Avg={sum(right_data)/len(right_data):.1f}mm | Max={max(right_data)}mm")
     
     except serial.SerialException as e:
-        print(f"! LiDAR error: {e}")
+        print(f"! LiDAR communication error: {e}")
+    except Exception as e:
+        print(f"! Unexpected error: {e}")
 
 # --- Action Functions ---
 def press_elevator1_button_5():
