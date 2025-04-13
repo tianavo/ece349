@@ -102,24 +102,47 @@ def parse_stl19p_packet(packet):
     return points
 
 def scan_lidar(duration=5):
-    """Manual LiDAR scanning mode"""
-    print(f"\nScanning LiDAR for {duration} seconds...")
-    start_time = time.time()
-    lidar = serial.Serial(PORT, BAUDRATE, timeout=1)
-    
+    """Efficient LiDAR scanning with summarized output"""
     try:
-        while time.time() - start_time < duration:
-            packet = lidar.read(47)
-            if packet:
-                points = parse_stl19p_packet(packet)
-                if points:
-                    for p in points:
-                        if abs(p["angle"] - LEFT_ANGLE) < 5:
-                            print(f"Left: {p['angle']:.1f}° | {p['distance']}mm")
-                        elif abs(p["angle"] - RIGHT_ANGLE) < 5:
-                            print(f"Right: {p['angle']:.1f}° | {p['distance']}mm")
-    finally:
-        lidar.close()
+        with serial.Serial(PORT, BAUDRATE, timeout=1) as lidar:
+            print(f"\nScanning LiDAR for {duration}s (Ctrl+C to stop)...")
+            
+            # Data containers
+            left_data = []
+            right_data = []
+            last_print = 0
+            
+            start_time = time.time()
+            while time.time() - start_time < duration:
+                packet = lidar.read(47)
+                if packet and packet[0] == 0x54 and packet[1] == 0x2C:
+                    points = parse_stl19p_packet(packet)
+                    if points:
+                        now = time.time()
+                        for p in points:
+                            if abs(p["angle"] - LEFT_ANGLE) < 5:
+                                left_data.append(p["distance"])
+                            elif abs(p["angle"] - RIGHT_ANGLE) < 5:
+                                right_data.append(p["distance"])
+                        
+                        # Throttle output to 1Hz
+                        if now - last_print >= 1.0:
+                            print("\n=== Summary ===")
+                            if left_data:
+                                print(f"Left Elevator: Min={min(left_data)}mm | Avg={sum(left_data)/len(left_data):.1f}mm | Max={max(left_data)}mm")
+                            if right_data:
+                                print(f"Right Elevator: Min={min(right_data)}mm | Avg={sum(right_data)/len(right_data):.1f}mm | Max={max(right_data)}mm")
+                            last_print = now
+                
+                elif packet:
+                    print(f"! Invalid packet header: {packet[:2].hex()}")
+            
+            # Final summary
+            print("\n=== Final Scan Results ===")
+            print(f"Left samples: {len(left_data)} | Right samples: {len(right_data)}")
+    
+    except serial.SerialException as e:
+        print(f"! LiDAR error: {e}")
 
 # --- Action Functions ---
 def press_elevator1_button_5():
