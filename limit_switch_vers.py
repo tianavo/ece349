@@ -23,11 +23,11 @@ limit_switch_y = Button(LIMIT_Y, pull_up=True)
 # --- LiDAR Configuration ---
 PORT = "/dev/ttyUSB0"
 BAUDRATE = 230400
-LEFT_ANGLE = 45.0    # Adjust based on physical setup
+LEFT_ANGLE = 45.0       # Adjust based on physical setup
 RIGHT_ANGLE = 315.0
-THRESHOLD = 500      # mm change to detect door open
-BASELINE_LEFT = 1000 # Measure with doors closed
-BASELINE_RIGHT = 1000
+THRESHOLD = 600         # mm change to detect if door is opened (600mm ~2ft)
+BASELINE_LEFT = 3500    # Measure with doors closed, 3500mm ~11.5 feet
+BASELINE_RIGHT = 3500
 
 # --- Stepper Control Functions ---
 def move_stepper(pul_pin, direction_pin, steps, delay=0.0015):
@@ -279,9 +279,11 @@ def measure_elevator_distances():
             right_avg = sum(right_samples)/len(right_samples) if right_samples else 0
             
             print("\n\n=== Results ===")
-            print(f"Left Elevator (45°): {left_avg:.1f}mm (from {len(left_samples)} samples)")
-            print(f"Right Elevator (315°): {right_avg:.1f}mm (from {len(right_samples)} samples)")
+            print(f"Right Elevator (45°): {left_avg:.1f}mm (from {len(left_samples)} samples)")
+            print(f"Left Elevator (315°): {right_avg:.1f}mm (from {len(right_samples)} samples)")
             
+            # The left is in reality the right one, as the coordinate system is left-handed
+            # We won't change the variables just the text printed to tell us
             return {
                 'left_avg': left_avg,
                 'right_avg': right_avg,
