@@ -221,6 +221,77 @@ def scan_lidar(duration=5):
     except Exception as e:
         print(f"\n! Error during scanning: {e}")
 
+def measure_elevator_distances():
+    """Measures average distances at 45° and 315° angles for 5 seconds"""
+    try:
+        with serial.Serial(PORT, BAUDRATE, timeout=1) as lidar:
+            print("\nMeasuring elevator distances for 5 seconds...")
+            lidar.reset_input_buffer()
+            
+            # Data collectors
+            left_samples = []   # 45° samples
+            right_samples = []  # 315° samples
+            start_time = time.time()
+            
+            while time.time() - start_time < 5:
+                # Look for packet header
+                header = lidar.read(2)
+                if len(header) != 2 or header[0] != 0x54 or header[1] != 0x2C:
+                    continue
+                
+                # Read full packet
+                packet = header + lidar.read(45)
+                if len(packet) != 47:
+                    continue
+                
+                try:
+                    # Parse packet
+                    start_angle = struct.unpack("<H", packet[4:6])[0] / 100.0
+                    end_angle = struct.unpack("<H", packet[42:44])[0] / 100.0
+                    
+                    # Process all 12 data points in packet
+                    for i in range(12):
+                        offset = 6 + (i * 3)
+                        distance = struct.unpack("<H", packet[offset:offset+2])[0]
+                        angle = start_angle + (i * (end_angle - start_angle) / 11)
+                        
+                        # Normalize angle (0-360)
+                        angle = angle % 360
+                        
+                        # Check if near target angles
+                        if abs(angle - 45) < 10:  # 35°-55° range
+                            left_samples.append(distance)
+                        elif abs(angle - 315) < 10:  # 305°-325° range
+                            right_samples.append(distance)
+                
+                except Exception as e:
+                    continue
+                
+                # Live progress
+                elapsed = time.time() - start_time
+                print(f"\rScanning: {elapsed:.1f}s | "
+                      f"Left samples: {len(left_samples)} | "
+                      f"Right samples: {len(right_samples)}", end='")
+            
+            # Calculate results
+            left_avg = sum(left_samples)/len(left_samples) if left_samples else 0
+            right_avg = sum(right_samples)/len(right_samples) if right_samples else 0
+            
+            print("\n\n=== Results ===")
+            print(f"Left Elevator (45°): {left_avg:.1f}mm (from {len(left_samples)} samples)")
+            print(f"Right Elevator (315°): {right_avg:.1f}mm (from {len(right_samples)} samples)")
+            
+            return {
+                'left_avg': left_avg,
+                'right_avg': right_avg,
+                'left_samples': len(left_samples),
+                'right_samples': len(right_samples)
+            }
+    
+    except Exception as e:
+        print(f"\nError during measurement: {e}")
+        return None
+        
 # --- Action Functions ---
 def press_elevator1_button_5():
     """Full sequence for left elevator"""
@@ -273,8 +344,14 @@ if __name__ == "__main__":
                 press_elevator1_button_5()
             elif choice == '3':
                 press_elevator2_button_5()
+            # In your main menu:
             elif choice == '4':
-                scan_lidar()
+                results = measure_elevator_distances()
+                if results:
+                    if abs(results['left_avg'] - BASELINE_LEFT) > THRESHOLD:
+                        print("LEFT DOOR OPEN!")
+                    if abs(results['right_avg'] - BASELINE_RIGHT) > THRESHOLD:
+                        print("RIGHT DOOR OPEN!")
             elif choice == '5':
                 test_steppers()
             elif choice == '6':
