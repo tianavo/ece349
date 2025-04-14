@@ -241,7 +241,7 @@ def check_door_status(avg_distance, baseline, threshold):
     """Enhanced door status detection"""
     if avg_distance < 2000:  # Minimum reliable distance (2000m ~6.6ft)
         return "OBSTRUCTION TOO CLOSE"
-    elif avg_distance > 15000:  # Beyond effective range
+    elif avg_distance > 7000:  # Beyond effective range (7000m ~23ft)
         return "NO DETECTION (TOO FAR)"
     elif abs(avg_distance - baseline) > threshold:
         return "OPEN"
