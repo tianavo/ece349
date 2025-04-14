@@ -84,6 +84,14 @@ def move_axes_simultaneously(x_dir, y_dir, x_steps, y_steps):
     thread_y.join()
 
 # --- LiDAR Functions ---
+def simple_lidar_test():
+    with serial.Serial(PORT, BAUDRATE, timeout=1) as lidar:
+        print("Reading raw LiDAR data (Ctrl+C to stop)...")
+        while True:
+            data = lidar.read(100)
+            print(data.hex())
+            time.sleep(0.1)
+
 def parse_stl19p_packet(packet):
     """Decode LiDAR data packet"""
     if len(packet) != 47 or packet[0] != 0x54 or packet[1] != 0x2C:
@@ -199,6 +207,7 @@ if __name__ == "__main__":
             print("3: Move to Right Elevator")
             print("4: Scan LiDAR (5 sec)")
             print("5: Test Steppers")
+            print("6: Test Lidar")
             print("q: Quit")
             
             choice = input("Select option: ").strip().lower()
@@ -213,6 +222,8 @@ if __name__ == "__main__":
                 scan_lidar()
             elif choice == '5':
                 test_steppers()
+            elif choice == '6':
+                simple_lidar_test()
             elif choice == 'q':
                 break
             else:
