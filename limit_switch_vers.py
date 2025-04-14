@@ -102,80 +102,62 @@ def parse_stl19p_packet(packet):
     return points
 
 def scan_lidar(duration=5):
-    """Improved LiDAR scanning with better error handling and packet validation"""
+    """Simplified LiDAR scanner that looks for distance data near target angles"""
     try:
         with serial.Serial(PORT, BAUDRATE, timeout=1) as lidar:
-            print(f"\nScanning LiDAR for {duration}s (Ctrl+C to stop)...")
-            lidar.reset_input_buffer()  # Clear any stale data
+            print(f"\nScanning LiDAR for {duration}s...")
+            lidar.reset_input_buffer()  # Clear any old data
             
-            # Data containers
-            left_data = []
-            right_data = []
-            last_print = 0
-            packet_count = 0
-            error_count = 0
-            
+            left_samples = []
+            right_samples = []
             start_time = time.time()
-            while time.time() - start_time < duration:
-                # Read header first
-                header = lidar.read(2)
-                if not header or len(header) < 2:
-                    continue
-                
-                # Check for valid packet header (0x54 0x2C)
-                if header[0] != 0x54 or header[1] != 0x2C:
-                    error_count += 1
-                    # Attempt to resync by finding next valid header
-                    lidar.read_until(expected=b'\x54\x2C', size=100)
-                    continue
-                
-                # Read remaining packet (45 bytes after header)
-                remaining = lidar.read(45)
-                if len(remaining) < 45:
-                    error_count += 1
-                    continue
-                
-                # Combine header and remaining
-                packet = header + remaining
-                packet_count += 1
-                
-                try:
-                    points = parse_stl19p_packet(packet)
-                    if points:
-                        for p in points:
-                            if abs(p["angle"] - LEFT_ANGLE) < 5:
-                                left_data.append(p["distance"])
-                            elif abs(p["angle"] - RIGHT_ANGLE) < 5:
-                                right_data.append(p["distance"])
-                except Exception as e:
-                    error_count += 1
-                    print(f"! Packet parsing error: {e}")
-                
-                # Throttle output to 1Hz
-                now = time.time()
-                if now - last_print >= 1.0:
-                    print("\n=== Summary ===")
-                    print(f"Valid packets: {packet_count} | Errors: {error_count}")
-                    if left_data:
-                        print(f"Left Elevator: Samples={len(left_data)} | Avg={sum(left_data)/len(left_data):.1f}mm")
-                    if right_data:
-                        print(f"Right Elevator: Samples={len(right_data)} | Avg={sum(right_data)/len(right_data):.1f}mm")
-                    last_print = now
             
-            # Final summary
-            print("\n=== Final Scan Results ===")
-            print(f"Total valid packets: {packet_count}")
-            print(f"Total errors: {error_count}")
-            print(f"Left samples: {len(left_data)} | Right samples: {len(right_data)}")
-            if left_data:
-                print(f"Left Elevator: Min={min(left_data)}mm | Avg={sum(left_data)/len(left_data):.1f}mm | Max={max(left_data)}mm")
-            if right_data:
-                print(f"Right Elevator: Min={min(right_data)}mm | Avg={sum(right_data)/len(right_data):.1f}mm | Max={max(right_data)}mm")
+            while time.time() - start_time < duration:
+                # Look for packet start byte
+                byte = lidar.read(1)
+                if not byte or byte[0] != 0x54:
+                    continue
+                
+                # Try to read the rest of the packet
+                packet = byte + lidar.read(46)  # 1 + 46 = 47 total bytes
+                if len(packet) < 47:
+                    continue
+                
+                # Very basic distance extraction (ignoring most packet structure)
+                try:
+                    # Distances are at offsets 6-41 (12 distances × 3 bytes each)
+                    for i in range(12):
+                        offset = 6 + (i * 3)
+                        distance = packet[offset] | (packet[offset+1] << 8)
+                        
+                        # Get approximate angle (crude approximation)
+                        angle = (i * 30)  # Roughly 30° between points
+                        
+                        # Check if near our target angles
+                        if abs(angle - LEFT_ANGLE) < 10:
+                            left_samples.append(distance)
+                        elif abs(angle - RIGHT_ANGLE) < 10:
+                            right_samples.append(distance)
+                
+                except:
+                    continue  # Skip if any parsing fails
+                
+                # Simple progress output
+                if time.time() - start_time > 1 and len(left_samples + right_samples) > 0:
+                    print("\r" + " " * 50, end='')  # Clear line
+                    print(f"\rLeft: {len(left_samples)} samples | Right: {len(right_samples)} samples", end='')
+            
+            # Final results
+            print("\n\n=== Final Results ===")
+            if left_samples:
+                avg_left = sum(left_samples) / len(left_samples)
+                print(f"Left Elevator: {avg_left:.1f}mm (avg of {len(left_samples)} samples)")
+            if right_samples:
+                avg_right = sum(right_samples) / len(right_samples)
+                print(f"Right Elevator: {avg_right:.1f}mm (avg of {len(right_samples)} samples)")
     
-    except serial.SerialException as e:
-        print(f"! LiDAR communication error: {e}")
     except Exception as e:
-        print(f"! Unexpected error: {e}")
+        print(f"\n! Error during scanning: {e}")
 
 # --- Action Functions ---
 def press_elevator1_button_5():
