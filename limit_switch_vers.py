@@ -25,7 +25,7 @@ PORT = "/dev/ttyUSB0"
 BAUDRATE = 230400
 LEFT_ANGLE = 45.0       # Adjust based on physical setup
 RIGHT_ANGLE = 315.0
-THRESHOLD = 1000         # mm change to detect if door is opened (1500mm ~5ft)
+THRESHOLD = 1000         # mm change to detect if door is opened (1000mm ~3.3ft)
 BASELINE_LEFT = 3500     # Measure with doors closed, 3500mm ~11.5 feet
 BASELINE_RIGHT = 3500
 
@@ -239,7 +239,7 @@ def measure_elevator_distances():
 
 def check_door_status(avg_distance, baseline, threshold):
     """Enhanced door status detection"""
-    if avg_distance < 300:  # Minimum reliable distance
+    if avg_distance < 2000:  # Minimum reliable distance (2000m ~6.6ft)
         return "OBSTRUCTION TOO CLOSE"
     elif avg_distance > 15000:  # Beyond effective range
         return "NO DETECTION (TOO FAR)"
@@ -308,12 +308,12 @@ if __name__ == "__main__":
                     right_status = check_door_status(results['right_avg'], BASELINE_RIGHT, THRESHOLD)
     
                     print("\n=== Door Status ===")
-                    print(f"Left Elevator: {left_status}")
-                    print(f"Right Elevator: {right_status}")
+                    print(f"Right Elevator: {left_status}")
+                    print(f"Left Elevator: {right_status}")
         # Additional debug info
-                    print(f"\nLeft: {results['left_avg']:.1f}mm vs baseline {BASELINE_LEFT}mm")
-                    print(f"Right: {results['right_avg']:.1f}mm vs baseline {BASELINE_RIGHT}mm")
-                    
+                    print(f"\nRight: {results['left_avg']:.1f}mm vs baseline {BASELINE_LEFT}mm")
+                    print(f"Left: {results['right_avg']:.1f}mm vs baseline {BASELINE_RIGHT}mm")
+
             elif choice == '5':
                 test_steppers()
             elif choice == '6':
