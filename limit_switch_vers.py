@@ -265,10 +265,14 @@ def measure_elevator_distances():
                 except Exception as e:
                     continue
                 
-                # Live progress (fixed string formatting)
+                # Fixed progress output - now properly terminated
                 elapsed = time.time() - start_time
-                print(f"\rScanning: {elapsed:.1f}s | Left samples: {len(left_samples)} | "
-                      f"Right samples: {len(right_samples)}", end='")
+                progress_msg = (
+                    f"\rScanning: {elapsed:.1f}s | "
+                    f"Left samples: {len(left_samples)} | "
+                    f"Right samples: {len(right_samples)}"
+                )
+                print(progress_msg, end='', flush=True)
             
             # Calculate results
             left_avg = sum(left_samples)/len(left_samples) if left_samples else 0
