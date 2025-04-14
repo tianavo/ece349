@@ -254,23 +254,20 @@ def measure_elevator_distances():
                         offset = 6 + (i * 3)
                         distance = struct.unpack("<H", packet[offset:offset+2])[0]
                         angle = start_angle + (i * (end_angle - start_angle) / 11)
+                        angle = angle % 360  # Normalize to 0-360
                         
-                        # Normalize angle (0-360)
-                        angle = angle % 360
-                        
-                        # Check if near target angles
-                        if abs(angle - 45) < 10:  # 35°-55° range
+                        # Check if near target angles (with ±10° tolerance)
+                        if 35 <= angle <= 55:
                             left_samples.append(distance)
-                        elif abs(angle - 315) < 10:  # 305°-325° range
+                        elif 305 <= angle <= 325:
                             right_samples.append(distance)
                 
                 except Exception as e:
                     continue
                 
-                # Live progress
+                # Live progress (fixed string formatting)
                 elapsed = time.time() - start_time
-                print(f"\rScanning: {elapsed:.1f}s | "
-                      f"Left samples: {len(left_samples)} | "
+                print(f"\rScanning: {elapsed:.1f}s | Left samples: {len(left_samples)} | "
                       f"Right samples: {len(right_samples)}", end='")
             
             # Calculate results
@@ -291,7 +288,7 @@ def measure_elevator_distances():
     except Exception as e:
         print(f"\nError during measurement: {e}")
         return None
-        
+
 # --- Action Functions ---
 def press_elevator1_button_5():
     """Full sequence for left elevator"""
