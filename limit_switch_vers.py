@@ -25,8 +25,8 @@ PORT = "/dev/ttyUSB0"
 BAUDRATE = 230400
 LEFT_ANGLE = 45.0       # Adjust based on physical setup
 RIGHT_ANGLE = 315.0
-THRESHOLD = 600         # mm change to detect if door is opened (600mm ~2ft)
-BASELINE_LEFT = 3500    # Measure with doors closed, 3500mm ~11.5 feet
+THRESHOLD = 1000         # mm change to detect if door is opened (1500mm ~5ft)
+BASELINE_LEFT = 3500     # Measure with doors closed, 3500mm ~11.5 feet
 BASELINE_RIGHT = 3500
 
 # --- Stepper Control Functions ---
@@ -163,64 +163,6 @@ def parse_stl19p_packet(packet):
     
     return points
 
-def scan_lidar(duration=5):
-    """Simplified LiDAR scanner that looks for distance data near target angles"""
-    try:
-        with serial.Serial(PORT, BAUDRATE, timeout=1) as lidar:
-            print(f"\nScanning LiDAR for {duration}s...")
-            lidar.reset_input_buffer()  # Clear any old data
-            
-            left_samples = []
-            right_samples = []
-            start_time = time.time()
-            
-            while time.time() - start_time < duration:
-                # Look for packet start byte
-                byte = lidar.read(1)
-                if not byte or byte[0] != 0x54:
-                    continue
-                
-                # Try to read the rest of the packet
-                packet = byte + lidar.read(46)  # 1 + 46 = 47 total bytes
-                if len(packet) < 47:
-                    continue
-                
-                # Very basic distance extraction (ignoring most packet structure)
-                try:
-                    # Distances are at offsets 6-41 (12 distances × 3 bytes each)
-                    for i in range(12):
-                        offset = 6 + (i * 3)
-                        distance = packet[offset] | (packet[offset+1] << 8)
-                        
-                        # Get approximate angle (crude approximation)
-                        angle = (i * 30)  # Roughly 30° between points
-                        
-                        # Check if near our target angles
-                        if abs(angle - LEFT_ANGLE) < 10:
-                            left_samples.append(distance)
-                        elif abs(angle - RIGHT_ANGLE) < 10:
-                            right_samples.append(distance)
-                
-                except:
-                    continue  # Skip if any parsing fails
-                
-                # Simple progress output
-                if time.time() - start_time > 1 and len(left_samples + right_samples) > 0:
-                    print("\r" + " " * 50, end='')  # Clear line
-                    print(f"\rLeft: {len(left_samples)} samples | Right: {len(right_samples)} samples", end='')
-            
-            # Final results
-            print("\n\n=== Final Results ===")
-            if left_samples:
-                avg_left = sum(left_samples) / len(left_samples)
-                print(f"Left Elevator: {avg_left:.1f}mm (avg of {len(left_samples)} samples)")
-            if right_samples:
-                avg_right = sum(right_samples) / len(right_samples)
-                print(f"Right Elevator: {avg_right:.1f}mm (avg of {len(right_samples)} samples)")
-    
-    except Exception as e:
-        print(f"\n! Error during scanning: {e}")
-
 def measure_elevator_distances():
     """Measures average distances at 45° and 315° angles for 5 seconds"""
     try:
@@ -295,6 +237,17 @@ def measure_elevator_distances():
         print(f"\nError during measurement: {e}")
         return None
 
+def check_door_status(avg_distance, baseline, threshold):
+    """Enhanced door status detection"""
+    if avg_distance < 300:  # Minimum reliable distance
+        return "OBSTRUCTION TOO CLOSE"
+    elif avg_distance > 15000:  # Beyond effective range
+        return "NO DETECTION (TOO FAR)"
+    elif abs(avg_distance - baseline) > threshold:
+        return "OPEN"
+    else:
+        return "CLOSED"
+    
 # --- Action Functions ---
 def press_elevator1_button_5():
     """Full sequence for left elevator"""
@@ -351,10 +304,16 @@ if __name__ == "__main__":
             elif choice == '4':
                 results = measure_elevator_distances()
                 if results:
-                    if abs(results['left_avg'] - BASELINE_LEFT) > THRESHOLD:
-                        print("LEFT DOOR OPEN!")
-                    if abs(results['right_avg'] - BASELINE_RIGHT) > THRESHOLD:
-                        print("RIGHT DOOR OPEN!")
+                    left_status = check_door_status(results['left_avg'], BASELINE_LEFT, THRESHOLD)
+                    right_status = check_door_status(results['right_avg'], BASELINE_RIGHT, THRESHOLD)
+    
+                    print("\n=== Door Status ===")
+                    print(f"Left Elevator: {left_status}")
+                    print(f"Right Elevator: {right_status}")
+        # Additional debug info
+                    print(f"\nLeft: {results['left_avg']:.1f}mm vs baseline {BASELINE_LEFT}mm")
+                    print(f"Right: {results['right_avg']:.1f}mm vs baseline {BASELINE_RIGHT}mm")
+                    
             elif choice == '5':
                 test_steppers()
             elif choice == '6':
