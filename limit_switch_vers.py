@@ -92,6 +92,60 @@ def simple_lidar_test():
             print(data.hex())
             time.sleep(0.1)
 
+def troubleshoot_lidar(duration=10):
+    """Raw data inspector that finds distances in any incoming data"""
+    try:
+        with serial.Serial(PORT, BAUDRATE, timeout=1) as lidar:
+            print(f"\nLiDAR Troubleshooter running for {duration}s...")
+            print("Press Ctrl+C to stop early\n")
+            lidar.reset_input_buffer()
+            
+            # Raw data analysis
+            raw_bytes = bytearray()
+            distance_counts = 0
+            start_time = time.time()
+            
+            while time.time() - start_time < duration:
+                # Read whatever's available
+                chunk = lidar.read(lidar.in_waiting or 1)
+                if chunk:
+                    raw_bytes.extend(chunk)
+                
+                # Scan through all bytes looking for potential distances
+                i = 0
+                while i < len(raw_bytes) - 1:
+                    # Distance is 2 little-endian bytes (0-65535mm)
+                    potential_dist = raw_bytes[i] | (raw_bytes[i+1] << 8)
+                    
+                    # Only count plausible distances (100mm to 20m)
+                    if 100 <= potential_dist <= 20000:
+                        print(f"Found distance: {potential_dist}mm")
+                        distance_counts += 1
+                        i += 2  # Skip next byte since we used it
+                    else:
+                        i += 1
+                
+                # Keep last 100 bytes to prevent overlap (in case of partial distance)
+                raw_bytes = raw_bytes[-100:] if len(raw_bytes) > 100 else raw_bytes
+                
+                # Show progress
+                print(f"\rBytes analyzed: {len(raw_bytes)} | Valid distances found: {distance_counts}", end='')
+            
+            # Final report
+            print("\n\n=== Troubleshooting Results ===")
+            print(f"Total bytes received: {len(raw_bytes)}")
+            print(f"Plausible distances found: {distance_counts}")
+            
+            if distance_counts == 0:
+                print("\nNO VALID DISTANCES FOUND! Check:")
+                print("1. LiDAR power (should have green LED)")
+                print("2. USB connection (try different port/cable)")
+                print("3. Obstructions in front of LiDAR")
+                print("Raw data sample:", raw_bytes[:100].hex())
+    
+    except Exception as e:
+        print(f"\nError: {e}")
+
 def parse_stl19p_packet(packet):
     """Decode LiDAR data packet"""
     if len(packet) != 47 or packet[0] != 0x54 or packet[1] != 0x2C:
@@ -208,6 +262,7 @@ if __name__ == "__main__":
             print("4: Scan LiDAR (5 sec)")
             print("5: Test Steppers")
             print("6: Test Lidar")
+            print("7: Troubleshoot Lidar")
             print("q: Quit")
             
             choice = input("Select option: ").strip().lower()
@@ -224,6 +279,8 @@ if __name__ == "__main__":
                 test_steppers()
             elif choice == '6':
                 simple_lidar_test()
+            elif choice == '7':
+                troubleshoot_lidar()
             elif choice == 'q':
                 break
             else:
