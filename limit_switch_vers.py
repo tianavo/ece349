@@ -50,29 +50,39 @@ def move_axis(axis, direction, steps, delay=0.0015):
         direction_pin = dirY if direction == 'down' else dirX
     move_stepper(pul_pin, direction_pin, steps, delay)
 
-def home_with_limit(axis, direction):
-    """Home specified axis using limit switch"""
-    print(f"Homing {axis}-axis toward {direction}...")
-    if axis == 'x':
-        pul_pin, dir_pin = pulX, dirY if direction == 'right' else dirX
-        limit_switch = limit_switch_x
-    else:
-        pul_pin, dir_pin = pulY, dirY if direction == 'down' else dirX
-        limit_switch = limit_switch_y
+def home_all_simultaneously():
+    """Home both axes at the same time using threading"""
+    print("Simultaneous homing initiated...")
     
-    dir_pin.on()
-    while not limit_switch.is_pressed:
-        pul_pin.on()
-        time.sleep(0.001)
-        pul_pin.off()
-        time.sleep(0.001)
-    dir_pin.off()
-    print(f"{axis}-axis homed.")
+    def home_axis(axis, direction):
+        if axis == 'x':
+            pul_pin, dir_pin = pulX, dirY if direction == 'right' else dirX
+            limit_switch = limit_switch_x
+        else:
+            pul_pin, dir_pin = pulY, dirY if direction == 'down' else dirX
+            limit_switch = limit_switch_y
+        
+        dir_pin.on()
+        while not limit_switch.is_pressed:
+            pul_pin.on()
+            time.sleep(0.001)
+            pul_pin.off()
+            time.sleep(0.001)
+        dir_pin.off()
+        print(f"{axis}-axis homed.")
 
-def home_all():
-    """Home both axes sequentially"""
-    home_with_limit('x', 'left')
-    home_with_limit('y', 'up')
+    # Create threads for both axes
+    thread_x = threading.Thread(target=home_axis, args=('x', 'left'))
+    thread_y = threading.Thread(target=home_axis, args=('y', 'up'))
+    
+    # Start both threads
+    thread_x.start()
+    thread_y.start()
+    
+    # Wait for completion
+    thread_x.join()
+    thread_y.join()
+    print("Both axes homed!")
 
 def move_axes_simultaneously(x_dir, y_dir, x_steps, y_steps):
     """Threaded movement for both axes"""
@@ -295,7 +305,7 @@ if __name__ == "__main__":
             choice = input("Select option: ").strip().lower()
             
             if choice == '1':
-                home_all()
+                home_all_simultaneously()
             elif choice == '2':
                 press_elevator1_button_5()
             elif choice == '3':
