@@ -237,13 +237,13 @@ def measure_elevator_distances():
         print(f"\nError during measurement: {e}")
         return None
 
-def check_door_status(avg_distance, baseline, threshold):
+def check_door_status(avg_distance, baseline):
     """Enhanced door status detection"""
     if avg_distance < 2000:  # Minimum reliable distance (2000m ~6.6ft)
         return "OBSTRUCTION TOO CLOSE"
     elif avg_distance > 7000:  # Beyond effective range (7000m ~23ft)
         return "NO DETECTION (TOO FAR)"
-    elif abs(avg_distance - baseline) > threshold:
+    elif avg_distance > baseline:
         return "OPEN"
     else:
         return "CLOSED"
@@ -304,8 +304,8 @@ if __name__ == "__main__":
             elif choice == '4':
                 results = measure_elevator_distances()
                 if results:
-                    left_status = check_door_status(results['left_avg'], BASELINE_LEFT, THRESHOLD)
-                    right_status = check_door_status(results['right_avg'], BASELINE_RIGHT, THRESHOLD)
+                    left_status = check_door_status(results['left_avg'], BASELINE_LEFT)
+                    right_status = check_door_status(results['right_avg'], BASELINE_RIGHT)
     
                     print("\n=== Door Status ===")
                     print(f"Right Elevator: {left_status}")
