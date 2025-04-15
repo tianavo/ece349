@@ -247,6 +247,64 @@ def measure_elevator_distances():
         print(f"\nError during measurement: {e}")
         return None
 
+def wait_for_door_open(target_angle, baseline_distance, timeout=60):
+    """
+    Continuously scans until door opens at target angle
+    Args:
+        target_angle: 45 (right) or 315 (left) degrees
+        baseline_distance: Expected distance when closed (mm)
+        timeout: Maximum wait time in seconds
+    Returns:
+        bool: True if door opened, False if timeout
+    """
+    start_time = time.time()
+    angle_tolerance = 10.0  # ±10° window
+    
+    try:
+        with serial.Serial(PORT, BAUDRATE, timeout=1) as lidar:
+            print(f"\nMonitoring for door opening at {target_angle}°...")
+            lidar.reset_input_buffer()
+            
+            while time.time() - start_time < timeout:
+                # Check for packet
+                header = lidar.read(2)
+                if len(header) != 2 or header[0] != 0x54 or header[1] != 0x2C:
+                    continue
+                
+                # Process packet
+                packet = header + lidar.read(45)
+                if len(packet) != 47:
+                    continue
+                
+                try:
+                    # Parse angles and distances
+                    start_angle = struct.unpack("<H", packet[4:6])[0] / 100.0
+                    end_angle = struct.unpack("<H", packet[42:44])[0] / 100.0
+                    
+                    for i in range(12):
+                        offset = 6 + (i * 3)
+                        distance = struct.unpack("<H", packet[offset:offset+2])[0]
+                        angle = (start_angle + (i * (end_angle - start_angle) / 11) % 360)
+                        
+                        # Check if within target angle range
+                        if (target_angle - angle_tolerance) <= angle <= (target_angle + angle_tolerance):
+                            if distance > (baseline_distance + THRESHOLD):
+                                print(f"\nDOOR OPEN DETECTED! Distance: {distance}mm")
+                                return True
+                            
+                            # Status update
+                            elapsed = time.time() - start_time
+                            print(f"\rWaiting: {elapsed:.1f}s | Current: {distance}mm | Needed: >{baseline_distance + THRESHOLD}mm", end='')
+                
+                except Exception as e:
+                    continue
+    
+    except Exception as e:
+        print(f"\nLiDAR error: {e}")
+    
+    print("\nTimeout reached without door opening")
+    return False
+
 def check_door_status(avg_distance, baseline):
     """Enhanced door status detection"""
     if avg_distance < 2000:  # Minimum reliable distance (2000m ~6.6ft)
@@ -275,15 +333,15 @@ def test_steppers():
     """Validate motor movements"""
     print("\n=== Stepper Self-Test ===")
     print("Homing...")
-    home_all()
+    home_all_simultaneously()
     print("Testing X-axis...")
     move_axis('x', 'right', 200)
     time.sleep(1)
-    home_with_limit('x', 'left')
+    home_all_simultaneously()
     print("Testing Y-axis...")
     move_axis('y', 'down', 200)
     time.sleep(1)
-    home_with_limit('y', 'up')
+    home_all_simultaneously()
     print("Stepper test complete.")
 
 # --- Main Program ---
@@ -330,6 +388,61 @@ if __name__ == "__main__":
                 simple_lidar_test()
             elif choice == '7':
                 troubleshoot_lidar()
+            elif choice == '8':
+                print("\n=== Automatic Elevator Detection ===")
+                print("Calling both elevators and waiting for first to open...")
+    
+                # Press the static call button (same for both elevators)
+                move_axis('x', 'right', 500)  # Move to call button
+                time.sleep(0.5)               # Simulate button press
+                home_all_simultaneously()   # Back up to home
+    
+                # Start monitoring both elevators simultaneously
+                def monitor_left():
+                    return wait_for_door_open(315, BASELINE_LEFT, timeout=60)
+    
+                def monitor_right():
+                    return wait_for_door_open(45, BASELINE_RIGHT, timeout=60)
+    
+                # Threaded monitoring
+                left_thread = threading.Thread(target=monitor_left)
+                right_thread = threading.Thread(target=monitor_right)
+                left_thread.start()
+                right_thread.start()
+    
+                # Wait for first elevator to open
+                opened = None
+                while left_thread.is_alive() and right_thread.is_alive():
+                    time.sleep(0.1)
+                    if not left_thread.is_alive():
+                        opened = 'left'
+                        break
+                    if not right_thread.is_alive():
+                        opened = 'right'
+                        break
+    
+                # Cleanup threads
+                left_thread.join()
+                right_thread.join()
+    
+                # Handle result
+                if opened:
+                    print(f"\nElevator on {opened} side opened!")
+        
+                    if opened == 'left':
+                        # --- IMPLEMENT LEFT ELEVATOR ENTRY SEQUENCE HERE ---
+                        # Example:
+                        # move_axis('x', 'right', 600)  # Approach left elevator
+                        # move_axis('y', 'down', 700)   # Enter elevator
+                        print("IMPLEMENT LEFT ELEVATOR ENTRY MOVEMENTS")
+                    else:
+                        # --- IMPLEMENT RIGHT ELEVATOR ENTRY SEQUENCE HERE ---
+                        # Example:
+                        # move_axis('x', 'right', 800)  # Approach right elevator
+                        # move_axis('y', 'down', 750)   # Enter elevator
+                        print("IMPLEMENT RIGHT ELEVATOR ENTRY MOVEMENTS")
+                else:
+                    print("\nNo elevator opened within timeout period")
             elif choice == 'q':
                 break
             else:
