@@ -30,28 +30,28 @@ class Driver(Node):
         if invert_w1:
             self.W1A = LED(W1A_PIN)
             self.W1B = LED(W1B_PIN)
-        else 
+        else:
             self.W1A = LED(W1B_PIN)
             self.W1B = LED(W1A_PIN)
 
         if invert_w2:
             self.W2A = LED(W2A_PIN)
             self.W2B = LED(W2B_PIN)
-        else
+        else:
             self.W2A = LED(W2B_PIN)
             self.W2B = LED(W2A_PIN)
 
         if invert_w3:
             self.W3A = LED(W3A_PIN)
             self.W3B = LED(W3B_PIN)
-        else
+        else:
             self.W3A = LED(W3B_PIN)
             self.W3B = LED(W3A_PIN)
 
         if invert_w4:
             self.W4A = LED(W4A_PIN)
             self.W4B = LED(W4B_PIN)
-        else
+        else:
             self.W4A = LED(W4B_PIN)
             self.W4B = LED(W4A_PIN)
 
@@ -124,21 +124,21 @@ class Driver(Node):
                 self.W4A.off()
                 self.W4B.off()
 
-    def listener_callback(self, msg):
+    def joy_callback(self, msg):
         if msg.axes[5] > 0:
-            drive(1)
+            self.drive(1)
         elif msg.axes[5] < 0:
-            drive(2)
+            self.drive(2)
         elif msg.axes[4] > 0:
-            drive(3)
+            self.drive(3)
         elif msg.axes[4] < 0:
-            drive(4)
-        elif msg.button[4] < 0:
-            drive(5)
-        elif msg.button[5] < 0:
-            drive(6)
-        else
-            drive(0)
+            self.drive(4)
+        elif msg.buttons[4]:
+            self.drive(5)
+        elif msg.buttons[5]:
+            self.drive(6)
+        else:
+            self.drive(0)
 
 def main(args=None):
     rclpy.init(args=args)
