@@ -22,10 +22,10 @@ class Driver(Node):
         W4A_PIN = 26
         W4B_PIN = 20
 
-        invert_w1 = True
-        invert_w2 = True
+        invert_w1 = False
+        invert_w2 = False
         invert_w3 = True
-        invert_w4 = True
+        invert_w4 = False
 
         if invert_w1:
             self.W1A = LED(W1A_PIN)
