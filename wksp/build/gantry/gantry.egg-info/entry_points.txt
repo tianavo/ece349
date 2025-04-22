@@ -1,0 +1,2 @@
+[console_scripts]
+gantry = gantry.gantry_node:main
