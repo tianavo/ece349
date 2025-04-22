@@ -1,0 +1,40 @@
+[2.664s] Invoking command in '/home/cart/dev/ece349/wksp/src/driver': DEBUGINFOD_URLS=https://debuginfod.ubuntu.com PYTHONPATH=/home/cart/dev/ece349/wksp/build/driver/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/cart/dev/ece349/wksp/install/driver/lib/python3.12/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../../build/driver build --build-base /home/cart/dev/ece349/wksp/build/driver/build install --record /home/cart/dev/ece349/wksp/build/driver/install.log --single-version-externally-managed install_data
+[3.112s] running egg_info
+[3.115s] creating ../../build/driver/driver.egg-info
+[3.151s] writing ../../build/driver/driver.egg-info/PKG-INFO
+[3.152s] writing dependency_links to ../../build/driver/driver.egg-info/dependency_links.txt
+[3.152s] writing requirements to ../../build/driver/driver.egg-info/requires.txt
+[3.152s] writing top-level names to ../../build/driver/driver.egg-info/top_level.txt
+[3.152s] writing manifest file '../../build/driver/driver.egg-info/SOURCES.txt'
+[3.206s] reading manifest file '../../build/driver/driver.egg-info/SOURCES.txt'
+[3.207s] writing manifest file '../../build/driver/driver.egg-info/SOURCES.txt'
+[3.207s] running build
+[3.208s] running build_py
+[3.211s] creating /home/cart/dev/ece349/wksp/build/driver/build
+[3.211s] creating /home/cart/dev/ece349/wksp/build/driver/build/lib
+[3.211s] creating /home/cart/dev/ece349/wksp/build/driver/build/lib/driver
+[3.211s] copying driver/__init__.py -> /home/cart/dev/ece349/wksp/build/driver/build/lib/driver
+[3.211s] copying driver/driver_node.py -> /home/cart/dev/ece349/wksp/build/driver/build/lib/driver
+[3.211s] running install
+[3.232s] running install_lib
+[3.259s] creating /home/cart/dev/ece349/wksp/install/driver/lib/python3.12/site-packages/driver
+[3.259s] copying /home/cart/dev/ece349/wksp/build/driver/build/lib/driver/__init__.py -> /home/cart/dev/ece349/wksp/install/driver/lib/python3.12/site-packages/driver
+[3.259s] copying /home/cart/dev/ece349/wksp/build/driver/build/lib/driver/driver_node.py -> /home/cart/dev/ece349/wksp/install/driver/lib/python3.12/site-packages/driver
+[3.260s] byte-compiling /home/cart/dev/ece349/wksp/install/driver/lib/python3.12/site-packages/driver/__init__.py to __init__.cpython-312.pyc
+[3.260s] byte-compiling /home/cart/dev/ece349/wksp/install/driver/lib/python3.12/site-packages/driver/driver_node.py to driver_node.cpython-312.pyc
+[3.261s]   File "/home/cart/dev/ece349/wksp/install/driver/lib/python3.12/site-packages/driver/driver_node.py", line 33
+[3.261s]     else 
+[3.261s]          ^
+[3.261s] SyntaxError: expected ':'
+[3.261s] 
+[3.261s] running install_data
+[3.261s] creating /home/cart/dev/ece349/wksp/install/driver/share/ament_index
+[3.262s] creating /home/cart/dev/ece349/wksp/install/driver/share/ament_index/resource_index
+[3.262s] creating /home/cart/dev/ece349/wksp/install/driver/share/ament_index/resource_index/packages
+[3.262s] copying resource/driver -> /home/cart/dev/ece349/wksp/install/driver/share/ament_index/resource_index/packages
+[3.262s] copying package.xml -> /home/cart/dev/ece349/wksp/install/driver/share/driver
+[3.262s] running install_egg_info
+[3.290s] Copying ../../build/driver/driver.egg-info to /home/cart/dev/ece349/wksp/install/driver/lib/python3.12/site-packages/driver-0.0.0-py3.12.egg-info
+[3.291s] running install_scripts
+[3.523s] writing list of installed files to '/home/cart/dev/ece349/wksp/build/driver/install.log'
+[3.657s] Invoked command in '/home/cart/dev/ece349/wksp/src/driver' returned '0': DEBUGINFOD_URLS=https://debuginfod.ubuntu.com PYTHONPATH=/home/cart/dev/ece349/wksp/build/driver/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/cart/dev/ece349/wksp/install/driver/lib/python3.12/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../../build/driver build --build-base /home/cart/dev/ece349/wksp/build/driver/build install --record /home/cart/dev/ece349/wksp/build/driver/install.log --single-version-externally-managed install_data

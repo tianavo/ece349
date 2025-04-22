@@ -1,0 +1,21 @@
+[1.923s] Invoking command in '/home/cart/dev/ece349/wksp/src/gantry': DEBUGINFOD_URLS=https://debuginfod.ubuntu.com PYTHONPATH=/home/cart/dev/ece349/wksp/build/gantry/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/cart/dev/ece349/wksp/install/gantry/lib/python3.12/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../../build/gantry build --build-base /home/cart/dev/ece349/wksp/build/gantry/build install --record /home/cart/dev/ece349/wksp/build/gantry/install.log --single-version-externally-managed install_data
+[2.364s] running egg_info
+[2.406s] writing ../../build/gantry/gantry.egg-info/PKG-INFO
+[2.407s] writing dependency_links to ../../build/gantry/gantry.egg-info/dependency_links.txt
+[2.408s] writing entry points to ../../build/gantry/gantry.egg-info/entry_points.txt
+[2.410s] writing requirements to ../../build/gantry/gantry.egg-info/requires.txt
+[2.411s] writing top-level names to ../../build/gantry/gantry.egg-info/top_level.txt
+[2.467s] reading manifest file '../../build/gantry/gantry.egg-info/SOURCES.txt'
+[2.468s] writing manifest file '../../build/gantry/gantry.egg-info/SOURCES.txt'
+[2.468s] running build
+[2.468s] running build_py
+[2.469s] running install
+[2.486s] running install_lib
+[2.519s] running install_data
+[2.519s] running install_egg_info
+[2.549s] removing '/home/cart/dev/ece349/wksp/install/gantry/lib/python3.12/site-packages/gantry-0.0.0-py3.12.egg-info' (and everything under it)
+[2.549s] Copying ../../build/gantry/gantry.egg-info to /home/cart/dev/ece349/wksp/install/gantry/lib/python3.12/site-packages/gantry-0.0.0-py3.12.egg-info
+[2.550s] running install_scripts
+[2.782s] Installing gantry script to /home/cart/dev/ece349/wksp/install/gantry/lib/gantry
+[2.783s] writing list of installed files to '/home/cart/dev/ece349/wksp/build/gantry/install.log'
+[2.930s] Invoked command in '/home/cart/dev/ece349/wksp/src/gantry' returned '0': DEBUGINFOD_URLS=https://debuginfod.ubuntu.com PYTHONPATH=/home/cart/dev/ece349/wksp/build/gantry/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/cart/dev/ece349/wksp/install/gantry/lib/python3.12/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../../build/gantry build --build-base /home/cart/dev/ece349/wksp/build/gantry/build install --record /home/cart/dev/ece349/wksp/build/gantry/install.log --single-version-externally-managed install_data
