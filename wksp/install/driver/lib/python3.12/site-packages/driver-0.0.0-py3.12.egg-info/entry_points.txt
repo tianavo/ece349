@@ -1,2 +1,0 @@
-[console_scripts]
-driver_node = driver.driver_node:main
