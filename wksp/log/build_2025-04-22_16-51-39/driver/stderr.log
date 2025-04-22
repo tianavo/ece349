@@ -1,5 +1,0 @@
-  File "/home/cart/dev/ece349/wksp/install/driver/lib/python3.12/site-packages/driver/driver_node.py", line 33
-    else 
-         ^
-SyntaxError: expected ':'
-
