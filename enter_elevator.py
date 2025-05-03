@@ -91,13 +91,13 @@ class ElevatorEntryController(Node):
                 self.state = "SHIFT_RIGHT"
                 self.action_start_time = time.time()
                 self.shift_right()
-                self.get_logger().info("Turn complete - shifting right")
+                #self.get_logger().info("Turn complete - shifting right")
                 
         elif self.state == "SHIFT_RIGHT":
             if time.time() - self.action_start_time >= self.shift_duration:
                 self.state = "STOPPED"
                 self.stop()
-                self.get_logger().info("Maneuver complete - stopped")
+                #self.get_logger().info("Maneuver complete - stopped")
 
     def move_forward(self):
         """Case 1: Forward movement"""
