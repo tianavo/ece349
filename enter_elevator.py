@@ -12,13 +12,13 @@ class ElevatorEntryController(Node):
         super().__init__('elevator_entry_controller')
         
         # Motor control (same as your original)
-        self.W1A = LED(17)  # No inversion
+        self.W1A = LED(17) 
         self.W1B = LED(18)
-        self.W2A = LED(22)  # No inversion
+        self.W2A = LED(22)  
         self.W2B = LED(23)
-        self.W3A = LED(16)  # INVERTED (per your invert_w3=True)
-        self.W3B = LED(19)
-        self.W4A = LED(26)  # No inversion
+        self.W3A = LED(19)  
+        self.W3B = LED(16)
+        self.W4A = LED(26)
         self.W4B = LED(20)
         
         # Subscriptions
